@@ -1,0 +1,12 @@
+# Netlify 設定檔
+# 指定 Functions 目錄
+[build]
+  functions = "netlify/functions"
+
+# API 路由重定向
+# 將 /api/* 請求重定向到 Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
