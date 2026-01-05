@@ -1465,6 +1465,22 @@ export default function MikeWrap() {
     }
   };
   
+  // 輔助函數：檢查是否可以切換到指定頁面
+  // 只有首頁（index 0）或已登入（userData 存在）時才能切換
+  const canNavigateToScreen = (screenIndex: number) => {
+    // 首頁（index 0）永遠可以訪問
+    if (screenIndex === 0) return true;
+    // 其他頁面需要 userData 存在才能訪問
+    return userData !== null;
+  };
+  
+  // 安全地切換頁面
+  const handleScreenChange = (newScreen: number) => {
+    if (canNavigateToScreen(newScreen)) {
+      setCurrentScreen(newScreen);
+    }
+  };
+  
   const screens = [
     <Screen1 
       key="screen1" 
@@ -1506,11 +1522,14 @@ export default function MikeWrap() {
             {screens.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentScreen(index)}
+                onClick={() => handleScreenChange(index)}
+                disabled={!canNavigateToScreen(index)}
                 className={`w-2 h-2 rounded-full transition-all ${
                   currentScreen === index 
                     ? 'bg-purple-600 w-6' 
-                    : 'bg-gray-300'
+                    : canNavigateToScreen(index)
+                    ? 'bg-gray-300 hover:bg-gray-400 cursor-pointer'
+                    : 'bg-gray-200 opacity-50 cursor-not-allowed'
                 }`}
               />
             ))}
@@ -1519,7 +1538,7 @@ export default function MikeWrap() {
           {/* Navigation arrows */}
           {currentScreen > 0 && (
             <button
-              onClick={() => setCurrentScreen(prev => prev - 1)}
+              onClick={() => handleScreenChange(currentScreen - 1)}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1528,9 +1547,10 @@ export default function MikeWrap() {
             </button>
           )}
           
-          {currentScreen < screens.length - 1 && (
+          {/* 右箭頭：只有在已登入且不是最後一頁時才顯示 */}
+          {currentScreen < screens.length - 1 && userData !== null && (
             <button
-              onClick={() => setCurrentScreen(prev => prev + 1)}
+              onClick={() => handleScreenChange(currentScreen + 1)}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
