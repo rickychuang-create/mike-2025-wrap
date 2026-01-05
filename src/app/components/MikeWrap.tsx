@@ -1481,6 +1481,9 @@ export default function MikeWrap() {
     }
   };
   
+  // 依據 premium_user_type 動態決定是否顯示最後一頁（續訂提醒）
+  const premiumUserType = userData?.premium_user_type ?? 3;
+
   const screens = [
     <Screen1 
       key="screen1" 
@@ -1497,7 +1500,10 @@ export default function MikeWrap() {
     <Screen5 key="screen5" userData={userData} />,
     <Screen5a key="screen5a" userData={userData} />,
     <Screen8 key="screen8" userData={userData} />,
-    <Screen9 key="screen9" userData={userData} />,
+    // 只有 premium_user_type 為 1 或 2 時，才顯示續訂提醒頁
+    ...(premiumUserType === 1 || premiumUserType === 2
+      ? [<Screen9 key="screen9" userData={userData} />]
+      : []),
   ];
 
   return (
