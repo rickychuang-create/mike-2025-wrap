@@ -290,8 +290,8 @@ function Screen1({
             </div>
             <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/60 text-[13px] leading-[1.5]">
               {language === 'zh' 
-                ? <>请输入你登录 Mike App 使用的账号（@ 前的部分），或上传<a href="mikeapp://more" className="underline cursor-pointer hover:text-white/80 transition-colors">「更多页」</a>的截图。</>
-                : <>Enter the account you use to log in to Mike App (the part before @), or upload a screenshot of the <a href="mikeapp://more" className="underline cursor-pointer hover:text-white/80 transition-colors">"More"</a> page.</>}
+                ? <>请输入你登录 Mike App 使用的账号（@ 前的部分），或上传<a href="https://www.cmoney.tw/r/236/np8nqw" target="_blank" rel="noopener noreferrer" className="underline cursor-pointer hover:text-white/80 transition-colors">「更多页」</a>的截图。</>
+                : <>Enter the account you use to log in to Mike App (the part before @), or upload a screenshot of the <a href="https://www.cmoney.tw/r/236/np8nqw" target="_blank" rel="noopener noreferrer" className="underline cursor-pointer hover:text-white/80 transition-colors">"More"</a> page.</>}
             </p>
           </div>
           
@@ -329,7 +329,9 @@ function Screen1({
                 : (language === 'zh' ? '查看我的年度回顾' : 'See My Wrap')
               }
             </button>
-            <button className="w-full bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-2xl px-6 py-3 font-['Inter','Noto_Sans_SC'] font-semibold text-[15px] hover:bg-white/15 transition-all">
+            <button 
+              onClick={() => window.open('https://www.cmoney.tw/r/236/np8nqw', '_blank')}
+              className="w-full bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-2xl px-6 py-3 font-['Inter','Noto_Sans_SC'] font-semibold text-[15px] hover:bg-white/15 transition-all">
               {language === 'zh' ? '返回麦克APP' : 'Back to Mike App'}
             </button>
           </div>
@@ -1188,7 +1190,9 @@ function Screen8({ userData }: { userData: UserData | null }) {
         </button>
         
         {/* Share button */}
-        <button className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl shadow-black/10 hover:bg-white/95 transition-all">
+        <button 
+          onClick={() => window.open('https://www.cmoney.tw/r/236/v6nu30', '_blank')}
+          className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl shadow-black/10 hover:bg-white/95 transition-all">
           {language === 'zh' ? '分享' : 'Share'}
         </button>
       </div>
@@ -1362,7 +1366,17 @@ function Screen9({ userData }: { userData: UserData | null }) {
       {/* CTA buttons section */}
       <div className="absolute bottom-[140px] left-8 right-8">
         {/* Primary CTA - calm and confident */}
-        <button className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-lg shadow-black/10 hover:bg-white/95 transition-all mb-3">
+        <button 
+          onClick={() => {
+            // 根據 premium_user_type 決定連結
+            // premium_user_type = 1 → https://cmy.tw/00Cl6t
+            // premium_user_type = 2 → https://cmy.tw/00CnkI
+            const renewUrl = premium_user_type === 1 
+              ? 'https://cmy.tw/00Cl6t' 
+              : 'https://cmy.tw/00CnkI';
+            window.open(renewUrl, '_blank');
+          }}
+          className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-lg shadow-black/10 hover:bg-white/95 transition-all mb-3">
           {language === 'zh' ? '续订我的方案' : 'Renew my plan'}
         </button>
         
