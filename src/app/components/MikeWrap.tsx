@@ -1,5 +1,5 @@
 import svgPaths from "../../imports/svg-3vt1zivl9b";
-import { useState, createContext, useContext, useRef } from "react";
+import { useState, createContext, useContext, useRef, useEffect } from "react";
 import { toPng } from "html-to-image";
 import imgLoginBackground from "../../assets/56b5c5268002dc2dc0d66c169166bd1b809f2baa.png";
 import imgUserTypeBackground from "../../assets/9466ce84f3972cbe4812a57f95a8b27a5849e013.png";
@@ -533,13 +533,37 @@ function Screen4({ userData }: { userData: UserData | null }) {
 
   // Helper function to split bilingual feature names
   const splitFeatureName = (name: string) => {
-    // Match Chinese characters (and Chinese punctuation) vs English/Latin characters
+    // 匹配中文字符（包括中文標點）
     const chineseMatch = name.match(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g);
-    const englishMatch = name.match(/[a-zA-Z\s']+/g);
+    
+    // 先移除所有中文字符，得到純英文部分
+    const englishOnly = name.replace(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g, '').trim();
+    
+    // 將英文部分按空格分割成單詞
+    const englishWords = englishOnly ? englishOnly.split(/\s+/).filter(w => w.length > 0) : [];
+    
+    let chinese = chineseMatch ? chineseMatch.join('') : '';
+    let english = '';
+    
+    if (englishWords.length > 0) {
+      // 檢查第一個英文單詞是否是短縮寫（2-4個大寫字母，如 ETF）
+      const firstWord = englishWords[0];
+      const isShortAbbreviation = /^[A-Z]{2,4}$/.test(firstWord);
+      
+      if (isShortAbbreviation && englishWords.length > 1) {
+        // 將短縮寫加入中文部分
+        chinese = chinese + ' ' + firstWord;
+        // 英文部分取剩餘的所有單詞（從第二個開始）
+        english = englishWords.slice(1).join(' ');
+      } else {
+        // 否則，所有英文單詞都作為英文部分
+        english = englishWords.join(' ');
+      }
+    }
     
     return {
-      chinese: chineseMatch ? chineseMatch.join('') : '',
-      english: englishMatch ? englishMatch.join('').trim() : ''
+      chinese: chinese.trim(),
+      english: english.trim()
     };
   };
 
@@ -860,7 +884,7 @@ function Screen5({ userData }: { userData: UserData | null }) {
               
               <div className="absolute bottom-3.5 left-4 right-4">
                 <h3 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[24px] leading-[1.1] tracking-[-0.02em] mb-1.5">
-                  {language === 'zh' ? '投资日志' : 'Investment Journal'}
+                  {language === 'zh' ? '投资日誌' : 'Investment Journal'}
                 </h3>
                 <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/90 text-[12px] leading-[1.4]">
                   {language === 'zh' ? '记录决策、回顾逻辑、培养更好的习惯' : 'Record decisions, review logic, and build better habits.'}
@@ -1019,8 +1043,15 @@ function Screen5a({ userData }: { userData: UserData | null }) {
 function Screen8({ userData }: { userData: UserData | null }) {
   const { language } = useLanguage();
   const screenRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
+  const [bgImageLoaded, setBgImageLoaded] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  
   // Mike Type variable - set to 1, 2, 3, or 4
   const mike_type = userData?.mike_type || 3;
+  // User type variable - set to 1 or 2
+  const user_type = userData?.usertype || 2;
   
   // Content mapping based on mike_type
   const getMikeTypeContent = () => {
@@ -1101,7 +1132,483 @@ function Screen8({ userData }: { userData: UserData | null }) {
   // Current user type index for cycling through types
   const [currentUserType, setCurrentUserType] = useState(0);
 
+  // Preload background image
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      bgImageRef.current = img;
+      setBgImageLoaded(true);
+    };
+    img.onerror = () => {
+      console.warn('Failed to load background image');
+      setBgImageLoaded(true); // Still set to true to allow rendering without background
+    };
+    img.src = imgUserTypeBackground;
+  }, []);
+
+  // Check if fonts are loaded
+  const checkFontsLoaded = async (): Promise<boolean> => {
+    try {
+      await document.fonts.ready;
+      // Wait a bit more to ensure fonts are fully loaded
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Check specific fonts with actual font names used
+      const spaceGroteskLoaded = document.fonts.check('bold 48px "Space Grotesk"') || 
+                                 document.fonts.check('bold 48px Space Grotesk');
+      const interLoaded = document.fonts.check('normal 16px "Inter"') || 
+                         document.fonts.check('normal 16px Inter');
+      const notoSansLoaded = document.fonts.check('normal 16px "Noto Sans SC"') || 
+                            document.fonts.check('normal 16px "Noto Sans SC"');
+      
+      // If fonts are not loaded, wait a bit more
+      if (!spaceGroteskLoaded || !interLoaded || !notoSansLoaded) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        return (document.fonts.check('bold 48px "Space Grotesk"') || 
+                document.fonts.check('bold 48px Space Grotesk')) && 
+               (document.fonts.check('normal 16px "Inter"') || 
+                document.fonts.check('normal 16px Inter')) &&
+               (document.fonts.check('normal 16px "Noto Sans SC"') || 
+                document.fonts.check('normal 16px "Noto Sans SC"'));
+      }
+      return true;
+    } catch (error) {
+      console.warn('Font loading check failed:', error);
+      return true; // Proceed anyway
+    }
+  };
+
+  // Render SVG icon to canvas
+  const drawIconToCanvas = (ctx: CanvasRenderingContext2D) => {
+    const centerX = 195; // 390 / 2
+    const iconY = 140;
+    const iconSize = 280;
+    const scale = 1;
+
+    ctx.save();
+    ctx.translate(centerX, iconY);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = 0.2;
+
+    // Draw circles
+    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 4 * scale;
+    
+    // Circle 1: cx="70" cy="70" r="30"
+    ctx.beginPath();
+    ctx.arc(70 - 140, 70, 30 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Circle 2: cx="210" cy="70" r="30"
+    ctx.beginPath();
+    ctx.arc(210 - 140, 70, 30 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Circle 3: cx="140" cy="180" r="35"
+    ctx.beginPath();
+    ctx.arc(140 - 140, 180, 35 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fill();
+    ctx.stroke();
+
+    // Circle 4: cx="50" cy="210" r="25"
+    ctx.beginPath();
+    ctx.arc(50 - 140, 210, 25 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fill();
+    ctx.stroke();
+
+    // Circle 5: cx="230" cy="210" r="25"
+    ctx.beginPath();
+    ctx.arc(230 - 140, 210, 25 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw lines
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 3 * scale;
+    
+    // Line 1: x1="85" y1="85" x2="125" y2="165"
+    ctx.beginPath();
+    ctx.moveTo(85 - 140, 85);
+    ctx.lineTo(125 - 140, 165);
+    ctx.stroke();
+
+    // Line 2: x1="195" y1="85" x2="155" y2="165"
+    ctx.beginPath();
+    ctx.moveTo(195 - 140, 85);
+    ctx.lineTo(155 - 140, 165);
+    ctx.stroke();
+
+    // Line 3: x1="115" y1="195" x2="70" y2="200"
+    ctx.beginPath();
+    ctx.moveTo(115 - 140, 195);
+    ctx.lineTo(70 - 140, 200);
+    ctx.stroke();
+
+    // Line 4: x1="165" y1="195" x2="210" y2="200"
+    ctx.beginPath();
+    ctx.moveTo(165 - 140, 195);
+    ctx.lineTo(210 - 140, 200);
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  // Render content to canvas
+  const renderToCanvas = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      // Wait for fonts and background image
+      const fontsReady = await checkFontsLoaded();
+      if (!fontsReady && bgImageLoaded === false) {
+        // Wait a bit more if not ready
+        setTimeout(() => renderToCanvas(), 100);
+        return;
+      }
+
+      const pixelRatio = 2;
+      const width = 390;
+      const height = 844;
+
+      // Set canvas size first (this clears the canvas automatically)
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      
+      // Get context after resizing (context properties are reset when canvas size changes)
+      const ctx = canvas.getContext('2d', { 
+        willReadFrequently: false,
+        alpha: true 
+      });
+      if (!ctx) return;
+      
+      // Clear canvas completely to ensure no artifacts
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Scale context for high DPI
+      ctx.scale(pixelRatio, pixelRatio);
+      
+      // Ensure clean rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // 1. Draw background gradient
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#7B3FE4');
+      bgGradient.addColorStop(0.5, '#5B16D6');
+      bgGradient.addColorStop(1, '#4A0FB8');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Draw background image if loaded (using object-cover object-center logic)
+      if (bgImageRef.current && bgImageLoaded) {
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        
+        const img = bgImageRef.current;
+        const imgWidth = img.naturalWidth;
+        const imgHeight = img.naturalHeight;
+        const canvasAspect = width / height;
+        const imgAspect = imgWidth / imgHeight;
+        
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        // object-cover: scale to cover entire area, maintain aspect ratio
+        if (imgAspect > canvasAspect) {
+          // Image is wider, fit to height
+          drawHeight = height;
+          drawWidth = height * imgAspect;
+          drawX = (width - drawWidth) / 2; // object-center: center horizontally
+          drawY = 0;
+        } else {
+          // Image is taller, fit to width
+          drawWidth = width;
+          drawHeight = width / imgAspect;
+          drawX = 0;
+          drawY = (height - drawHeight) / 2; // object-center: center vertically
+        }
+        
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+      }
+
+      // 3. Draw purple overlay blend layer
+      ctx.save();
+      const overlayGradient = ctx.createLinearGradient(0, 0, width, height);
+      overlayGradient.addColorStop(0, 'rgba(91, 22, 214, 0.3)');
+      overlayGradient.addColorStop(0.5, 'transparent');
+      overlayGradient.addColorStop(1, 'rgba(91, 22, 214, 0.2)');
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.fillStyle = overlayGradient;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+
+      // 4. Draw additional depth layer
+      ctx.save();
+      const depthGradient = ctx.createLinearGradient(0, height, 0, 0);
+      depthGradient.addColorStop(0, 'rgba(0, 0, 0, 0.2)');
+      depthGradient.addColorStop(0.5, 'transparent');
+      depthGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+      ctx.fillStyle = depthGradient;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+
+      // 5. Draw icon
+      drawIconToCanvas(ctx);
+
+      // 6. Draw text content
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      // Get current content (recalculate to ensure latest values)
+      const currentContent = getMikeTypeContent();
+
+      // Top header - small label (left-8 right-8 = 32px padding each side)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = '600 12px "Inter", "Noto Sans SC"';
+      ctx.letterSpacing = '0.2em';
+      const headerText = language === 'zh' ? '你的麦克类型' : 'Your Mike Type';
+      ctx.fillText(headerText.toUpperCase(), width / 2, 80);
+
+      // Main statement (left-8 right-8 = 32px padding each side, so max width is 390 - 64 = 326px)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'normal 16px "Inter", "Noto Sans SC"';
+      ctx.letterSpacing = 'normal';
+      const statementText = language === 'zh' ? '分析你的活动后，你是一位…' : "After analyzing your activity, you're a…";
+      const statementMaxWidth = width - 64; // left-8 right-8 = 32px each side
+      const statementMetrics = ctx.measureText(statementText);
+      if (statementMetrics.width > statementMaxWidth) {
+        // Need to wrap text
+        const words = statementText.split(' ');
+        let currentLine = '';
+        let y = 115;
+        words.forEach((word) => {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > statementMaxWidth && currentLine) {
+            ctx.fillText(currentLine, width / 2, y);
+            currentLine = word;
+            y += 24; // leading-[1.5] * 16px
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine) {
+          ctx.fillText(currentLine, width / 2, y);
+        }
+      } else {
+        ctx.fillText(statementText, width / 2, 115);
+      }
+
+      // User type name - VERY LARGE (left-8 right-8 + px-4 = 32px + 16px = 48px padding each side)
+      ctx.fillStyle = 'white';
+      ctx.font = `bold 48px "Space Grotesk", "Noto Sans SC"`;
+      ctx.letterSpacing = '-0.03em';
+      const titleLines = currentContent.title.split('\n');
+      const titleY = 300;
+      const lineHeight = language === 'zh' ? 72 : 45.6; // leading-[1.5] vs leading-[0.95]
+      titleLines.forEach((line, index) => {
+        ctx.fillText(line, width / 2, titleY + (index * lineHeight));
+      });
+
+      // Tagline (only for English) (left-8 right-8 + px-4 = 48px padding each side, so max width is 390 - 96 = 294px)
+      if (language !== 'zh') {
+        ctx.fillStyle = 'white';
+        ctx.font = '600 20px "Inter", "Noto Sans SC"';
+        ctx.letterSpacing = '-0.01em';
+        const taglineMaxWidth = width - 96; // left-8 right-8 + px-4 = 32 + 16 = 48px each side
+        const taglineText = currentContent.description;
+        const taglineMetrics = ctx.measureText(taglineText);
+        if (taglineMetrics.width > taglineMaxWidth) {
+          // Need to wrap text
+          const words = taglineText.split(' ');
+          let currentLine = '';
+          let y = 450;
+          words.forEach((word) => {
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > taglineMaxWidth && currentLine) {
+              ctx.fillText(currentLine, width / 2, y);
+              currentLine = word;
+              y += 26; // leading-[1.3] * 20px
+            } else {
+              currentLine = testLine;
+            }
+          });
+          if (currentLine) {
+            ctx.fillText(currentLine, width / 2, y);
+          }
+        } else {
+          ctx.fillText(taglineText, width / 2, 450);
+        }
+      }
+
+      // Description (left-10 right-10 = 40px padding, max-w-[300px] mx-auto, so centered with 300px width)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = 'normal 15px "Inter", "Noto Sans SC"';
+      ctx.letterSpacing = 'normal';
+      const descY = language === 'zh' ? 480 : 550;
+      const descMaxWidth = 300; // max-w-[300px]
+      const descLines = currentContent.subtitle.split('\n');
+      const descLineHeight = 24; // leading-[1.6] * 15px
+      
+      // Helper function to wrap text (handles both Chinese and English)
+      const wrapText = (text: string, maxWidth: number, startY: number) => {
+        let y = startY;
+        
+        if (language === 'zh') {
+          // Chinese: wrap by character
+          let currentLine = '';
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const testLine = currentLine + char;
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && currentLine) {
+              ctx.fillText(currentLine, width / 2, y);
+              currentLine = char;
+              y += descLineHeight;
+            } else {
+              currentLine = testLine;
+            }
+          }
+          if (currentLine) {
+            ctx.fillText(currentLine, width / 2, y);
+          }
+        } else {
+          // English: wrap by word, but handle long words that exceed maxWidth
+          const words = text.split(/\s+/).filter(w => w.length > 0); // Split by whitespace and filter empty
+          let currentLine = '';
+          words.forEach((word) => {
+            // Check if single word exceeds maxWidth
+            const wordMetrics = ctx.measureText(word);
+            if (wordMetrics.width > maxWidth) {
+              // If current line has content, render it first
+              if (currentLine) {
+                ctx.fillText(currentLine, width / 2, y);
+                currentLine = '';
+                y += descLineHeight;
+              }
+              // Break long word by character
+              let wordLine = '';
+              for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                const testWordLine = wordLine + char;
+                const charMetrics = ctx.measureText(testWordLine);
+                if (charMetrics.width > maxWidth && wordLine) {
+                  ctx.fillText(wordLine, width / 2, y);
+                  wordLine = char;
+                  y += descLineHeight;
+                } else {
+                  wordLine = testWordLine;
+                }
+              }
+              if (wordLine) {
+                currentLine = wordLine;
+              }
+            } else {
+              // Normal word wrapping
+              const testLine = currentLine + (currentLine ? ' ' : '') + word;
+              const metrics = ctx.measureText(testLine);
+              if (metrics.width > maxWidth && currentLine) {
+                ctx.fillText(currentLine, width / 2, y);
+                currentLine = word;
+                y += descLineHeight;
+              } else {
+                currentLine = testLine;
+              }
+            }
+          });
+          if (currentLine) {
+            ctx.fillText(currentLine, width / 2, y);
+          }
+        }
+        return y;
+      };
+      
+      // Process each line separately (they are already split by \n in the content)
+      // For English, the subtitle is usually a single line, so we need to handle it properly
+      let currentY = descY;
+      descLines.forEach((line, index) => {
+        if (index > 0) {
+          // Add spacing between paragraphs (only if not first line)
+          currentY += descLineHeight;
+        }
+        // Wrap and render the line
+        const endY = wrapText(line.trim(), descMaxWidth, currentY);
+        // Move to next line position (add line height after rendering)
+        currentY = endY + descLineHeight;
+      });
+
+      setCanvasReady(true);
+    } catch (error) {
+      console.error('Error rendering to canvas:', error);
+      setCanvasReady(false);
+    }
+  };
+
+  // Trigger canvas rendering when dependencies change
+  useEffect(() => {
+    if (bgImageLoaded) {
+      renderToCanvas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, mike_type, bgImageLoaded]);
+
   const handleSaveImage = async () => {
+    const canvas = canvasRef.current;
+    
+    // Try to use canvas first (fast path)
+    if (canvas && canvasReady) {
+      try {
+        // Create a new canvas to ensure clean export without any artifacts
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = canvas.width;
+        exportCanvas.height = canvas.height;
+        const exportCtx = exportCanvas.getContext('2d');
+        if (exportCtx) {
+          // Copy the rendered content to a fresh canvas
+          exportCtx.drawImage(canvas, 0, 0);
+          // Export from the clean canvas
+          const dataUrl = exportCanvas.toDataURL('image/png', 1.0);
+          const link = document.createElement('a');
+          link.download = `mike-wrap-${language === 'zh' ? 'zh' : 'en'}.png`;
+          link.href = dataUrl;
+          // Remove any potential markers by using blob URL instead
+          fetch(dataUrl)
+            .then(res => res.blob())
+            .then(blob => {
+              const blobUrl = URL.createObjectURL(blob);
+              link.href = blobUrl;
+              link.click();
+              // Clean up blob URL after a delay
+              setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            })
+            .catch(() => {
+              // Fallback to direct data URL if blob fails
+              link.click();
+            });
+        } else {
+          // Fallback to direct export
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          const link = document.createElement('a');
+          link.download = `mike-wrap-${language === 'zh' ? 'zh' : 'en'}.png`;
+          link.href = dataUrl;
+          link.click();
+        }
+        return;
+      } catch (error) {
+        console.warn('Canvas export failed, falling back to toPng:', error);
+      }
+    }
+
+    // Fallback to original toPng method
     if (screenRef.current) {
       try {
         const dataUrl = await toPng(screenRef.current, {
@@ -1129,6 +1636,13 @@ function Screen8({ userData }: { userData: UserData | null }) {
 
   return (
     <div ref={screenRef} className="relative h-[844px] w-[390px] overflow-clip bg-gradient-to-b from-[#7B3FE4] via-[#5B16D6] to-[#4A0FB8]" data-name="User Type">
+      {/* Hidden canvas for pre-rendering */}
+      <canvas 
+        ref={canvasRef} 
+        style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
+        aria-hidden="true"
+      />
+      
       {/* Wave background with purple tinting */}
       <img alt="" className="absolute inset-0 max-w-none object-center object-cover pointer-events-none size-full opacity-40" src={imgUserTypeBackground} />
       
@@ -1191,7 +1705,15 @@ function Screen8({ userData }: { userData: UserData | null }) {
         
         {/* Share button */}
         <button 
-          onClick={() => window.open('https://www.cmoney.tw/r/236/v6nu30', '_blank')}
+          onClick={() => {
+            // 根據 user_type 決定連結
+            // user_type = 1 → https://www.cmoney.tw/r/236/2vltex
+            // user_type = 2 → https://www.cmoney.tw/r/236/v6nu30
+            const shareUrl = user_type === 1 
+              ? 'https://www.cmoney.tw/r/236/2vltex' 
+              : 'https://www.cmoney.tw/r/236/v6nu30';
+            window.open(shareUrl, '_blank');
+          }}
           className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl shadow-black/10 hover:bg-white/95 transition-all">
           {language === 'zh' ? '分享' : 'Share'}
         </button>
@@ -1210,28 +1732,53 @@ function Screen9({ userData }: { userData: UserData | null }) {
     return null;
   }
   
-  // Feature names from Top 5 Features screen
-  const feature_1 = "語音聊天室 live room";
-  const feature_2 = "麥克精選 mike's pick";
-  const feature_3 = "俱樂部 club";
-  const feature_4 = "麥克交易 mike's trade";
-  const feature_5 = "影片 video";
+  // 從 userData 取得功能名稱和 VIP 狀態，如果沒有則使用預設值
+  const feature_1 = userData?.feature_1 || "语音聊天室 Live Room";
+  const feature_2 = userData?.feature_2 || "麦克精选 Mike's Pick";
+  const feature_3 = userData?.feature_3 || "社团 Club";
+  const feature_4 = userData?.feature_4 || "投资日誌 Mike's Investment Journal";
+  const feature_5 = userData?.feature_5 || "内容专区影音 Video";
   
   // VIP status (1 = VIP, 2 = non-VIP)
-  const feature_1_vip = 1;
-  const feature_2_vip = 1;
-  const feature_3_vip = 2;
-  const feature_4_vip = 1;
-  const feature_5_vip = 2;
+  const feature_1_vip = userData?.feature_1_vip ?? 1;
+  const feature_2_vip = userData?.feature_2_vip ?? 1;
+  const feature_3_vip = userData?.feature_3_vip ?? 2;
+  const feature_4_vip = userData?.feature_4_vip ?? 1;
+  const feature_5_vip = userData?.feature_5_vip ?? 2;
   
   // Helper function to split bilingual feature names
   const splitFeatureName = (name: string) => {
+    // 匹配中文字符（包括中文標點）
     const chineseMatch = name.match(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g);
-    const englishMatch = name.match(/[a-zA-Z\s']+/g);
+    
+    // 先移除所有中文字符，得到純英文部分
+    const englishOnly = name.replace(/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+/g, '').trim();
+    
+    // 將英文部分按空格分割成單詞
+    const englishWords = englishOnly ? englishOnly.split(/\s+/).filter(w => w.length > 0) : [];
+    
+    let chinese = chineseMatch ? chineseMatch.join('') : '';
+    let english = '';
+    
+    if (englishWords.length > 0) {
+      // 檢查第一個英文單詞是否是短縮寫（2-4個大寫字母，如 ETF）
+      const firstWord = englishWords[0];
+      const isShortAbbreviation = /^[A-Z]{2,4}$/.test(firstWord);
+      
+      if (isShortAbbreviation && englishWords.length > 1) {
+        // 將短縮寫加入中文部分
+        chinese = chinese + ' ' + firstWord;
+        // 英文部分取剩餘的所有單詞（從第二個開始）
+        english = englishWords.slice(1).join(' ');
+      } else {
+        // 否則，所有英文單詞都作為英文部分
+        english = englishWords.join(' ');
+      }
+    }
     
     return {
-      chinese: chineseMatch ? chineseMatch.join('') : '',
-      english: englishMatch ? englishMatch.join('').trim() : ''
+      chinese: chinese.trim(),
+      english: english.trim()
     };
   };
   
@@ -1253,18 +1800,18 @@ function Screen9({ userData }: { userData: UserData | null }) {
   const getPremiumContent = () => {
     if (premium_user_type === 1) {
       return {
-        expiryDate: "Jan 17, 2026",
+        expiryDate: "Feb 4, 2026",
         price: "NT$469"
       };
     } else if (premium_user_type === 2) {
       return {
-        expiryDate: "Feb 1, 2026",
+        expiryDate: "Feb 19, 2026",
         price: "NT$509"
       };
     }
     // Default fallback
     return {
-      expiryDate: "Jan 17, 2026",
+      expiryDate: "Feb 4, 2026",
       price: "NT$469"
     };
   };
@@ -1302,16 +1849,16 @@ function Screen9({ userData }: { userData: UserData | null }) {
               </p>
               <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white text-[15px] leading-[1.5] text-center mt-3">
                 {premium_user_type === 1 ? (
-                  <>你的 VIP 权限将持续至 <span className="font-semibold">1/17</span>。</>
+                  <>你的 VIP 权限将持续至 <span className="font-semibold">2/4</span>。</>
                 ) : (
-                  <>你的 VIP 权限将持续至 <span className="font-semibold">2/1</span>。</>
+                  <>你的 VIP 权限将持续至 <span className="font-semibold">2/19</span>。</>
                 )}
               </p>
               <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white text-[15px] leading-[1.5] text-center mt-3">
                 {premium_user_type === 1 ? (
-                  <>若你希望继续使用 VIP 功能，并保留您原先的 <span className="font-semibold">US$469</span>早鸟价，请在 <span className="font-semibold">1/17</span>到期前完成续订即可。</>
+                  <>若你希望继续使用 VIP 功能，并保留您原先的 <span className="font-semibold">US$469</span>早鸟价，请在 <span className="font-semibold">2/4</span>到期前完成续订即可。</>
                 ) : (
-                  <>若你希望继续使用 VIP 功能，并保留您原先的 <span className="font-semibold">US$509</span>早鸟价，请在 <span className="font-semibold">2/1</span>到期前完成续订即可。</>
+                  <>若你希望继续使用 VIP 功能，并保留您原先的 <span className="font-semibold">US$509</span>早鸟价，请在 <span className="font-semibold">2/19</span>到期前完成续订即可。</>
                 )}
               </p>
               <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white text-[15px] leading-[1.5] text-center mt-3">
@@ -1325,9 +1872,9 @@ function Screen9({ userData }: { userData: UserData | null }) {
               </p>
               <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white text-[15px] leading-[1.5] text-center mt-3">
                 {premium_user_type === 1 ? (
-                  <>Your VIP access remains active until <span className="font-semibold">Jan 17</span>.</>
+                  <>Your VIP access remains active until <span className="font-semibold">Feb 4</span>.</>
                 ) : (
-                  <>Your VIP access remains active until <span className="font-semibold">Feb 01</span>.</>
+                  <>Your VIP access remains active until <span className="font-semibold">Feb 19</span>.</>
                 )}
               </p>
               <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white text-[15px] leading-[1.5] text-center mt-3">
@@ -1348,7 +1895,7 @@ function Screen9({ userData }: { userData: UserData | null }) {
         {vipFeatures.length > 0 && (
           <div className="bg-white/8 backdrop-blur-lg rounded-2xl p-5 border border-white/15">
             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/70 text-[13px] leading-[1.3] text-center mb-3">
-              {language === 'zh' ? '回顾你最常使用的 VIP 功能' : "Let's see your most-used VIP features"}
+              {language === 'zh' ? '你最常使用的 VIP 功能' : 'Your most-used VIP features'}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {vipFeatures.map((feature, index) => (
