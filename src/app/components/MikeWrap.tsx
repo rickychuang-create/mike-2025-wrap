@@ -12,7 +12,7 @@ import imgChatRoom from "../../assets/130e47bc5599e981dd3764fa04f621aae6c9500f.p
 import imgMikeTrade from "../../assets/7b5e13d4c387d8ba7a5cf0ad5e8e632742979b1c.png";
 import imgLiveRoom from "../../assets/8edafb93c55a63e088100ef79ef041df60a69b06.png";
 import { recognizeAccount } from "../api/gemini";
-import { getUserData, UserData } from "../api/sheets";
+import { getUserData, UserData, trackUserEvent } from "../api/sheets";
 
 const imgScreen3Background = "https://images.unsplash.com/photo-1760442903597-6aeb6f23212f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwdXJwbGUlMjBncmFkaWVudCUyMHNvZnR8ZW58MXx8fHwxNzY3MDEyMTc0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
@@ -109,10 +109,12 @@ function Screen1({
   onAccountRecognized,
   onSeeWrap,
   onLoadUserData,
+  externalErrorMessage,
 }: {
   onAccountRecognized?: (account: string) => void;
   onSeeWrap?: () => void;
   onLoadUserData?: (account: string) => Promise<boolean>;
+  externalErrorMessage?: string | null;
 }) {
   const { language, setLanguage } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +123,9 @@ function Screen1({
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // 優先顯示本地驗證 / 上傳錯誤，其次顯示父層傳入的 API 錯誤
+  const displayErrorMessage = errorMessage || externalErrorMessage || null;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -273,10 +278,10 @@ function Screen1({
                   </div>
                 )}
                 
-                {/* 錯誤訊息顯示 */}
-                {errorMessage && (
+                {/* 錯誤訊息顯示（本地錯誤或父層錯誤） */}
+                {displayErrorMessage && (
                   <p className="mt-2 text-red-300 text-[13px]">
-                    {errorMessage}
+                    {displayErrorMessage}
                   </p>
                 )}
                 
@@ -330,7 +335,14 @@ function Screen1({
               }
             </button>
             <button 
-              onClick={() => window.open('https://www.cmoney.tw/r/236/np8nqw', '_blank')}
+              onClick={() => {
+                window.open('https://www.cmoney.tw/r/236/np8nqw', '_blank');
+                // 追蹤返回 App 按鈕點擊（可能尚未載入 userData，使用輸入帳號會比較複雜，暫時不帶 account）
+                trackUserEvent({
+                  account: userData?.account ?? '',
+                  clicked_button: 'screen1_back_to_mike_app',
+                });
+              }}
               className="w-full bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-2xl px-6 py-3 font-['Inter','Noto_Sans_SC'] font-semibold text-[15px] hover:bg-white/15 transition-all">
               {language === 'zh' ? '返回麦克APP' : 'Back to Mike App'}
             </button>
@@ -1040,7 +1052,7 @@ function Screen5a({ userData }: { userData: UserData | null }) {
   );
 }
 
-function Screen8({ userData }: { userData: UserData | null }) {
+function Screen8({ userData, isCompact = false }: { userData: UserData | null; isCompact?: boolean }) {
   const { language } = useLanguage();
   const screenRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1655,15 +1667,15 @@ function Screen8({ userData }: { userData: UserData | null }) {
       {/* 狀態列已移除 - 用戶會有自己的狀態列 */}
       
       {/* Top header - small label */}
-      <div className="absolute top-[80px] left-8 right-8">
-        <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-white/50 text-[12px] leading-[1.3] tracking-[0.2em] uppercase text-center">
+      <div className={`absolute ${isCompact ? 'top-[70px]' : 'top-[80px]'} left-8 right-8`}>
+        <p className={`font-['Inter','Noto_Sans_SC'] font-semibold text-white/50 ${isCompact ? 'text-[11px]' : 'text-[12px]'} leading-[1.3] tracking-[0.2em] uppercase text-center`}>
           {language === 'zh' ? '你的麦克类型' : 'Your Mike Type'}
         </p>
       </div>
       
       {/* Main statement */}
-      <div className="absolute top-[115px] left-8 right-8">
-        <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/90 text-[16px] leading-[1.5] text-center">
+      <div className={`absolute ${isCompact ? 'top-[100px]' : 'top-[115px]'} left-8 right-8`}>
+        <p className={`font-['Inter','Noto_Sans_SC'] font-normal text-white/90 ${isCompact ? 'text-[14px]' : 'text-[16px]'} leading-[1.5] text-center`}>
           {language === 'zh' ? '分析你的活动后，你是一位…' : "After analyzing your activity, you're a…"}
         </p>
       </div>
@@ -1672,33 +1684,41 @@ function Screen8({ userData }: { userData: UserData | null }) {
       {getTypeIcon()}
       
       {/* User type name - VERY LARGE and dominant */}
-      <div className="absolute top-[300px] left-8 right-8">
-        <h1 className={`font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[48px] ${language === 'zh' ? 'leading-[1.5]' : 'leading-[0.95]'} tracking-[-0.03em] text-center whitespace-pre-line px-4 max-w-full`}>
+      <div className={`absolute ${isCompact ? 'top-[280px]' : 'top-[300px]'} left-8 right-8`}>
+        <h1 className={`font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white ${isCompact ? 'text-[42px]' : 'text-[48px]'} ${language === 'zh' ? 'leading-[1.5]' : 'leading-[0.95]'} tracking-[-0.03em] text-center whitespace-pre-line px-4 max-w-full`}>
           {content.title}
         </h1>
       </div>
       
       {/* Tagline - directly under name */}
       {language !== 'zh' && (
-        <div className="absolute top-[450px] left-8 right-8 px-4">
-          <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-white text-[20px] leading-[1.3] text-center tracking-[-0.01em]">
+        <div className={`absolute ${isCompact ? 'top-[420px]' : 'top-[450px]'} left-8 right-8 px-4`}>
+          <p className={`font-['Inter','Noto_Sans_SC'] font-semibold text-white ${isCompact ? 'text-[18px]' : 'text-[20px]'} leading-[1.3] text-center tracking-[-0.01em]`}>
             {content.description}
           </p>
         </div>
       )}
       
       {/* Description - ONLY current type */}
-      <div className={`absolute ${language === 'zh' ? 'top-[480px]' : 'top-[550px]'} left-10 right-10`}>
-        <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/85 text-[15px] leading-[1.6] text-center whitespace-pre-line max-w-[300px] mx-auto">
+      <div className={`absolute ${isCompact ? (language === 'zh' ? 'top-[450px]' : 'top-[520px]') : (language === 'zh' ? 'top-[480px]' : 'top-[550px]')} left-10 right-10`}>
+        <p className={`font-['Inter','Noto_Sans_SC'] font-normal text-white/85 ${isCompact ? 'text-[14px]' : 'text-[15px]'} leading-[1.6] text-center whitespace-pre-line max-w-[300px] mx-auto`}>
           {content.subtitle}
         </p>
       </div>
       
       {/* Share button */}
-      <div className="absolute bottom-[100px] left-8 right-8 space-y-3" data-exclude-from-capture="true">
+      <div className={`absolute ${isCompact ? 'bottom-[80px]' : 'bottom-[100px]'} left-8 right-8 space-y-3`} data-exclude-from-capture="true">
         {/* Save Image button */}
         <button 
-          onClick={handleSaveImage}
+          onClick={() => {
+            handleSaveImage();
+            if (userData?.account) {
+              trackUserEvent({
+                account: userData.account,
+                clicked_button: 'screen8_save_image',
+              });
+            }
+          }}
           className="w-full bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl shadow-black/10 hover:bg-white/20 transition-all">
           {language === 'zh' ? '保存图片' : 'Save Image'}
         </button>
@@ -1713,6 +1733,12 @@ function Screen8({ userData }: { userData: UserData | null }) {
               ? 'https://www.cmoney.tw/r/236/2vltex' 
               : 'https://www.cmoney.tw/r/236/v6nu30';
             window.open(shareUrl, '_blank');
+            if (userData?.account) {
+              trackUserEvent({
+                account: userData.account,
+                clicked_button: 'screen8_share',
+              });
+            }
           }}
           className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl shadow-black/10 hover:bg-white/95 transition-all">
           {language === 'zh' ? '分享' : 'Share'}
@@ -1922,13 +1948,29 @@ function Screen9({ userData }: { userData: UserData | null }) {
               ? 'https://cmy.tw/00Cl6t' 
               : 'https://cmy.tw/00CnkI';
             window.open(renewUrl, '_blank');
+            if (userData?.account) {
+              trackUserEvent({
+                account: userData.account,
+                clicked_button: 'screen9_renew_plan',
+              });
+            }
           }}
           className="w-full bg-white text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-lg shadow-black/10 hover:bg-white/95 transition-all mb-3">
           {language === 'zh' ? '续订我的方案' : 'Renew my plan'}
         </button>
         
         {/* Secondary action - low emphasis */}
-        <button className="w-full text-white/70 font-['Inter','Noto_Sans_SC'] font-medium text-[14px] hover:text-white/90 transition-colors py-2">
+        <button 
+          className="w-full text-white/70 font-['Inter','Noto_Sans_SC'] font-medium text-[14px] hover:text-white/90 transition-colors py-2"
+          onClick={() => {
+            if (userData?.account) {
+              trackUserEvent({
+                account: userData.account,
+                clicked_button: 'screen9_not_now',
+              });
+            }
+          }}
+        >
           {language === 'zh' ? '暂时不要' : 'Not now'}
         </button>
       </div>
@@ -1951,6 +1993,20 @@ export default function MikeWrap() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // 首次登入成功後，顯示一次操作說明的提示視窗
+  const [showNavHint, setShowNavHint] = useState(false);
+  
+  // Responsive scaling for mobile viewport
+  const [scale, setScale] = useState(1);
+  const [isCompact, setIsCompact] = useState(false);
+  
+  // Base card dimensions（設計稿大小）
+  const CARD_WIDTH = 390;
+  const CARD_HEIGHT = 844;
+  // 縮放上下限：允許在小螢幕上略為縮小，在大螢幕上適度放大
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 1.5;
+  const COMPACT_THRESHOLD = 0.85;
   
   // 處理帳號辨識成功
   const handleAccountRecognized = (account: string) => {
@@ -1965,6 +2021,66 @@ export default function MikeWrap() {
     // 暫時使用一個共享的 ref 或 state
     // 為了簡化，我們在 Screen1 中直接處理這個邏輯
   };
+  
+  // Calculate responsive scale based on viewport
+  useEffect(() => {
+    const calculateScale = () => {
+      if (typeof window === 'undefined') return;
+      
+      // Set --vh CSS variable to handle mobile browser viewport issues
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      
+      // 取得可用視窗尺寸
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // 以寬度與高度各自計算縮放倍率
+      const scaleWidth = viewportWidth / CARD_WIDTH;
+      const scaleHeight = viewportHeight / CARD_HEIGHT;
+      
+      // cover 與 contain 兩種縮放倍率
+      const coverScale = Math.max(scaleWidth, scaleHeight);
+      const containScale = Math.min(scaleWidth, scaleHeight);
+      
+      let calculatedScale = coverScale;
+      
+      // 如果是「高度明顯偏矮」的裝置（例如 iPhone SE、iPad mini 直向），
+      // 使用 cover 會裁切太多上下內容，這時改用 contain（以高度為主），確保文字不被裁掉
+      if (scaleHeight < scaleWidth) {
+        const ratio = coverScale / scaleHeight; // > 1 代表會裁掉一部分高度
+        if (ratio > 1.08) {
+          // 裁切超過約 8% 高度就改用 contain，允許左右出現少量紫色邊
+          calculatedScale = containScale;
+        }
+      }
+      
+      // 將縮放倍率限制在合理範圍內，避免過小或過大
+      calculatedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, calculatedScale));
+      
+      setScale(calculatedScale);
+      setIsCompact(calculatedScale < COMPACT_THRESHOLD);
+    };
+    
+    // Calculate on mount
+    calculateScale();
+    
+    // Debounce resize handler
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(calculateScale, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, []);
   
   // 從 Screen1 呼叫的函數，用於載入用戶資料
   const loadUserData = async (account: string) => {
@@ -1987,6 +2103,13 @@ export default function MikeWrap() {
       if (data) {
         // 更新用戶資料
         setUserData(data);
+        // 紀錄成功查詢年度回顧事件
+        trackUserEvent({
+          account: data.account || account.trim(),
+          clicked_button: 'view_wrap_success',
+        });
+        // 顯示操作提示：告訴用戶左右點擊可以換頁
+        setShowNavHint(true);
         // 導航到下一個畫面
         setCurrentScreen(1);
         return true;
@@ -2040,13 +2163,14 @@ export default function MikeWrap() {
         // 我們通過一個 ref 或 callback 來取得
       }}
       onLoadUserData={loadUserData}
+      externalErrorMessage={errorMessage}
     />,
     <Screen2 key="screen2" userData={userData} />,
     <Screen3 key="screen3" userData={userData} />,
     <Screen4 key="screen4" userData={userData} />,
     <Screen5 key="screen5" userData={userData} />,
     <Screen5a key="screen5a" userData={userData} />,
-    <Screen8 key="screen8" userData={userData} />,
+    <Screen8 key="screen8" userData={userData} isCompact={isCompact} />,
     // 只有 premium_user_type 為 1 或 2 時，才顯示續訂提醒頁
     ...(premiumUserType === 1 || premiumUserType === 2
       ? [<Screen9 key="screen9" userData={userData} />]
@@ -2055,7 +2179,8 @@ export default function MikeWrap() {
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
-      <div className="bg-[#f5f5f5] relative size-full overflow-x-auto" data-name="mike-wrap">
+      {/* 外層容器使用與卡片相近的紫色背景，弱化縮放邊緣的色差 */}
+      <div className="bg-[#5B16D6] relative size-full overflow-x-auto" data-name="mike-wrap">
       {/* Desktop view - all screens in a row */}
       <div className="hidden lg:flex gap-8 p-8 min-w-max">
         {screens.map((screen, index) => (
@@ -2065,53 +2190,92 @@ export default function MikeWrap() {
         ))}
       </div>
       
-      {/* Mobile view - swipeable carousel */}
-      <div className="lg:hidden relative h-full flex items-center justify-center">
-        <div className="relative w-full max-w-[390px] h-[844px]">
+      {/* Mobile view - swipeable carousel（整體縮放，保持內部比例不變） */}
+      <div 
+        className="lg:hidden relative w-full flex items-center justify-center overflow-hidden"
+        style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+      >
+        <div 
+          className="relative"
+          style={{
+            width: `${CARD_WIDTH}px`,
+            height: `${CARD_HEIGHT}px`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'center center',
+          }}
+        >
           {screens[currentScreen]}
-          
-          {/* Navigation dots */}
-          <div className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 flex gap-2">
+        </div>
+        
+        {/* 點擊左右區域換頁（不再顯示箭頭），僅在已登入時啟用 */}
+        {userData !== null && (
+          <>
+            {/* 左側：上一頁。避開最上方約 20% 高度，避免干擾語言切換等元素 */}
+            <button
+              type="button"
+              aria-label="Previous screen"
+              onClick={() => handleScreenChange(currentScreen - 1)}
+              disabled={currentScreen === 0}
+              className={`absolute left-0 top-[20%] bottom-0 w-[15%] md:w-[12%] bg-transparent z-10 ${
+                currentScreen === 0 ? 'pointer-events-none' : 'pointer-events-auto'
+              }`}
+            />
+            {/* 右側：下一頁。僅在不是最後一頁時可用 */}
+            <button
+              type="button"
+              aria-label="Next screen"
+              onClick={() => handleScreenChange(currentScreen + 1)}
+              disabled={currentScreen >= screens.length - 1}
+              className={`absolute right-0 top-[20%] bottom-0 w-[15%] md:w-[12%] bg-transparent z-10 ${
+                currentScreen >= screens.length - 1 ? 'pointer-events-none' : 'pointer-events-auto'
+              }`}
+            />
+          </>
+        )}
+        
+        {/* Navigation dots - 移到上方中央，避免擋住底部文字。
+            第一頁為登入頁，不顯示點點，從第二頁開始顯示。 */}
+        {currentScreen > 0 && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-4 flex gap-2 z-10">
             {screens.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleScreenChange(index)}
                 disabled={!canNavigateToScreen(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`h-2 w-2 rounded-full transition-all ${
                   currentScreen === index 
-                    ? 'bg-purple-600 w-6' 
+                    ? 'bg-purple-400 w-6' 
                     : canNavigateToScreen(index)
-                    ? 'bg-gray-300 hover:bg-gray-400 cursor-pointer'
-                    : 'bg-gray-200 opacity-50 cursor-not-allowed'
+                    ? 'bg-white/40 hover:bg-white/70 cursor-pointer'
+                    : 'bg-white/20 opacity-50 cursor-not-allowed'
                 }`}
               />
             ))}
           </div>
-          
-          {/* Navigation arrows */}
-          {currentScreen > 0 && (
-            <button
-              onClick={() => handleScreenChange(currentScreen - 1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-          
-          {/* 右箭頭：只有在已登入且不是最後一頁時才顯示 */}
-          {currentScreen < screens.length - 1 && userData !== null && (
-            <button
-              onClick={() => handleScreenChange(currentScreen + 1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-        </div>
+        )}
+        
+        {/* 登入成功後的操作提示：說明點擊左右可換頁 */}
+        {showNavHint && userData !== null && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40" data-exclude-from-capture="true">
+            <div className="mx-8 rounded-2xl bg-white/95 px-6 py-5 text-center shadow-2xl max-w-[320px]">
+              <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-[#3A2076] text-[15px] mb-2">
+                {language === 'zh' ? '操作小提醒' : 'Quick tip'}
+              </p>
+              <p className="font-['Inter','Noto_Sans_SC'] font-normal text-[#4B4B4B] text-[13px] leading-[1.5] mb-4 whitespace-pre-line">
+                {language === 'zh'
+                  ? '點擊畫面右側前往下一頁，\n左側回到上一頁。'
+                  : 'Tap the left/right side of the screen to go to the previous/next page.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowNavHint(false)}
+                className="w-full rounded-full bg-[#5B16D6] px-4 py-2.5 font-['Inter','Noto_Sans_SC'] font-semibold text-white text-[13px] hover:bg-[#6c29e5] transition-colors"
+              >
+                {language === 'zh' ? '知道了' : 'Got it'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
     </LanguageContext.Provider>
