@@ -13,8 +13,8 @@ interface IPRecord {
 const ipRecords = new Map<string, IPRecord>();
 
 // 限制規則
-const RATE_LIMIT_PER_MINUTE = 1000; // 每分鐘最多 1000 次
-const RATE_LIMIT_PER_HOUR = 2000; // 每小時最多 2000 次
+const RATE_LIMIT_PER_MINUTE = 5; // 每分鐘最多 5 次
+const RATE_LIMIT_PER_HOUR = 20; // 每小時最多 20 次
 const CLEANUP_INTERVAL = 60 * 1000; // 每分鐘清理一次過期記錄
 
 /**

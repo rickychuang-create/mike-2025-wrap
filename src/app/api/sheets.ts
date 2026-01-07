@@ -73,3 +73,30 @@ export async function getUserData(account: string): Promise<UserData | null> {
   }
 }
 
+// ---------------- 用戶行為追蹤 ----------------
+
+export interface TrackUserEventPayload {
+  account: string;
+  clicked_button: string;
+}
+
+/**
+ * 呼叫 track-user-event API 記錄用戶行為
+ * 追蹤失敗不會中斷主流程，只在 console 中記錄錯誤
+ */
+export async function trackUserEvent(payload: TrackUserEventPayload): Promise<void> {
+  try {
+    await fetch('/api/track-user-event', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    console.error('Track user event API 錯誤:', error);
+    // 不拋出錯誤，避免影響主流程
+  }
+}
+
+

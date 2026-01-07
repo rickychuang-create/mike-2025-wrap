@@ -30,7 +30,7 @@ export interface UserData {
 }
 
 /**
- * 初始化 Google Sheets API 客戶端
+ * 初始化 Google Sheets API 客戶端（唯讀）
  * @param serviceAccountKey - 服務帳號 JSON 字串或物件
  * @returns Google Sheets API 客戶端實例
  */
@@ -60,6 +60,72 @@ export function initGoogleSheets(serviceAccountKey: string | object): sheets_v4.
   } catch (error: any) {
     console.error('initGoogleSheets 錯誤:', error.message);
     throw new Error(`初始化 Google Sheets API 失敗: ${error.message}`);
+  }
+}
+
+/**
+ * 初始化具寫入權限的 Google Sheets API 客戶端
+ * @param serviceAccountKey - 服務帳號 JSON 字串或物件
+ * @returns Google Sheets API 客戶端實例（可讀寫）
+ */
+export function initGoogleSheetsWriter(serviceAccountKey: string | object): sheets_v4.Sheets {
+  try {
+    const key = typeof serviceAccountKey === 'string'
+      ? JSON.parse(serviceAccountKey)
+      : serviceAccountKey;
+
+    if (!key.client_email || !key.private_key) {
+      throw new Error('服務帳號 JSON 缺少必要欄位 (client_email 或 private_key)');
+    }
+
+    const auth = new google.auth.JWT({
+      email: key.client_email,
+      key: key.private_key,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    return sheets;
+  } catch (error: any) {
+    console.error('initGoogleSheetsWriter 錯誤:', error.message);
+    throw new Error(`初始化具寫入權限的 Google Sheets API 失敗: ${error.message}`);
+  }
+}
+
+/**
+ * 追蹤用戶事件：將一筆事件寫入指定的 Google Sheet 工作表
+ * @param sheets - Google Sheets API 客戶端實例（具寫入權限）
+ * @param sheetId - Google Sheet ID
+ * @param sheetName - 工作表名稱（例如「用戶行為追蹤」）
+ * @param account - 用戶帳號
+ * @param clicked_button - 事件名稱 / 按鈕代碼
+ * @param eventtime - 事件時間（ISO 字串）
+ * @param eventdate - 事件日期（字串）
+ */
+export async function appendUserEvent(
+  sheets: sheets_v4.Sheets,
+  sheetId: string,
+  sheetName: string,
+  account: string,
+  clicked_button: string,
+  eventtime: string,
+  eventdate: string
+): Promise<void> {
+  try {
+    const values = [[account, clicked_button, eventtime, eventdate]];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: `${sheetName}!A:D`,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values,
+      },
+    });
+  } catch (error: any) {
+    console.error('appendUserEvent 錯誤:', error.message);
+    throw new Error(`寫入用戶行為追蹤失敗: ${error.message}`);
   }
 }
 
