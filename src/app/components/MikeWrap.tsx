@@ -7,7 +7,7 @@ import imgTopFunctionsBackground from "../../assets/d4a720df43c93a5bfb3b5c46a555
 import imgEvolutionBackground from "../../assets/0daf03c8cb905fd16c7b536a4d85f7c1bf293f1f.png";
 import imgMikeTradeBackground from "../../assets/eb3f6061e5e4daec8146192551ab468a94cfbb68.png";
 import imgActiveDaysBackground from "../../assets/2e5e3c0b2d1d3df6c5e419e0cb0f09ad18e7c95f.png";
-import { Crown, Camera, ChevronRight } from "lucide-react";
+import { Crown, Camera, ChevronRight, ChevronLeft } from "lucide-react";
 import imgChatRoom from "../../assets/130e47bc5599e981dd3764fa04f621aae6c9500f.png";
 import imgMikeTrade from "../../assets/7b5e13d4c387d8ba7a5cf0ad5e8e632742979b1c.png";
 import imgLiveRoom from "../../assets/8edafb93c55a63e088100ef79ef041df60a69b06.png";
@@ -138,7 +138,7 @@ function ResponsiveWrapper({
 }: ResponsiveWrapperProps) {
   return (
     <div className={`relative w-full h-full overflow-hidden ${backgroundColor} ${className}`}>
-      {/* 1. 背景層：滿版 (Cover) */}
+      {/* 1. 背景層 */}
       {backgroundSrc && (
         <img 
           alt="" 
@@ -156,12 +156,14 @@ function ResponsiveWrapper({
 
       {/* 2. UI 容器層：置中，並根據 scale 縮放 */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {/* pointer-events-auto 確保內部按鈕可以被點擊 */}
         <div 
           style={{ 
             width: 390, 
             height: 844, 
-            transform: `scale(${scale})`,
+            transform: `scale(${scale}) translateZ(0)`, // 新增: translateZ(0) 強制開啟 GPU 加速
+            transformOrigin: 'center center', // 明確指定縮放原點
+            willChange: 'transform', // 新增: 告訴瀏覽器此元素會變形，優化渲染
+            backfaceVisibility: 'hidden', // 新增: 避免旋轉/縮放時的閃爍
             pointerEvents: 'auto' 
           }}
           className="relative shrink-0 shadow-2xl"
@@ -772,8 +774,18 @@ function Screen5a({ userData, uiScale }: { userData: UserData | null; uiScale: n
   );
 }
 
-// --- Screen 8: User Type (修正版：提示箭頭下移) ---
-function Screen8({ userData, isCompact = false, uiScale }: { userData: UserData | null; isCompact?: boolean; uiScale: number }) {
+// --- Screen 8: User Type (Spacing Fixed) ---
+function Screen8({ 
+  userData, 
+  isCompact = false, 
+  uiScale, 
+  onNext 
+}: { 
+  userData: UserData | null; 
+  isCompact?: boolean; 
+  uiScale: number; 
+  onNext?: () => void; 
+}) {
   const { language } = useLanguage();
   
   const mike_type = userData?.mike_type || 3;
@@ -781,7 +793,7 @@ function Screen8({ userData, isCompact = false, uiScale }: { userData: UserData 
   const premium_user_type = userData?.premium_user_type || 3;
   const hasNextPage = premium_user_type === 1 || premium_user_type === 2;
 
-  // 1. 設定圖片對應表 (請將這裡換成你實際 import 的變數)
+  // 1. 設定圖片對應表
   const shareImages: Record<number, Record<string, string>> = {
     1: { zh: imgType1Zh, en: imgType1En },
     2: { zh: imgType2Zh, en: imgType2En },
@@ -789,34 +801,39 @@ function Screen8({ userData, isCompact = false, uiScale }: { userData: UserData 
     4: { zh: imgType4Zh, en: imgType4En }
   };
 
+  // 2. 內容對應表
   const contentMap = {
      1: { 
          title_zh: "社群\n连接者", 
+         desc_zh: "你擅长借力集体的智慧，在共鸣中寻找答案，将众人的灵感内化为自己的决策。这种对信息流的敏锐捕捉，让你在市场中不再是孤军奋战。",
+         
          title_en: "Community\nConnector", 
-         desc_zh: "你擅长借力集体的智慧，在共鸣中寻找答案。", 
-         desc_en: "You grow faster when you learn with others.",
-         full_zh: "你擅长借力集体的智慧，在共鸣中寻找答案，将众人的灵感内化为自己的决策。这种对信息流的敏锐捕捉，让你在市场中不再是孤军奋战。" 
+         subtitle_en: "You grow faster when you learn with others.",
+         tagline_en: "Perspective is your real advantage."
      },
      2: { 
          title_zh: "信号\n狙击手", 
+         desc_zh: "你不为噪音所动，只在信号明确的瞬间果断出手。这种不轻易出鞘的克制，让你總能踩準市場的節拍。在波動的環境中，這份定力是你最強大的武器。",
+         
          title_en: "Signal\nHunter", 
-         desc_zh: "你不为噪音所动，只在信号明确的瞬间果断出手。", 
-         desc_en: "You move when timing matters.",
-         full_zh: "你不为噪音所动，只在信号明确的瞬间果断出手。这种不轻易出鞘的克制，让你總能踩準市場的節拍。在波動的環境中，這份定力是你最強大的武器。"
+         subtitle_en: "You move when timing matters.",
+         tagline_en: "Signals guide your decisions."
      },
      3: { 
          title_zh: "情报\n分析师", 
+         desc_zh: "你在事件背后的底层逻辑中寻找答案。这种稳扎稳打的风格，让你在面对波动时比别人多了一份从容。你构建优势的方式，是让每一笔决策都有据可依。",
+         
          title_en: "Insight\nCollector", 
-         desc_zh: "你在事件背后的底层逻辑中寻找答案。", 
-         desc_en: "You look for the 'why' behind every move.",
-         full_zh: "你在事件背后的底层逻辑中寻找答案。这种稳扎稳打的风格，让你在面对波动时比别人多了一份从容。你构建优势的方式，是让每一笔决策都有据可依。"
+         subtitle_en: "You look for the \"why\" behind every move.",
+         tagline_en: "Understanding comes before action."
      },
      4: { 
          title_zh: "系统\n架构师", 
+         desc_zh: "你深知，一套成熟的体系远比运气更重要。你习惯将复杂的操作磨炼成可重复的纪律，就算市场震荡，你的动作依然有章法。",
+         
          title_en: "System\nCrafter", 
-         desc_zh: "你深知，一套成熟的体系远比运气更重要。", 
-         desc_en: "You turn ideas into repeatable decisions.",
-         full_zh: "你深知，一套成熟的体系远比运气更重要。你习惯将复杂的操作磨炼成可重复的纪律，就算市场震荡，你的动作依然有章法。"
+         subtitle_en: "You turn ideas into repeatable decisions.",
+         tagline_en: "Process keeps you sharp."
      }
   };
   // @ts-ignore
@@ -855,27 +872,54 @@ function Screen8({ userData, isCompact = false, uiScale }: { userData: UserData 
              <svg viewBox="0 0 280 280" fill="none"><circle cx="70" cy="70" r="30" stroke="white" strokeWidth="4" fill="white" fillOpacity="0.1"/><circle cx="210" cy="70" r="30" stroke="white" strokeWidth="4" fill="white" fillOpacity="0.1"/><circle cx="140" cy="180" r="35" stroke="white" strokeWidth="4" fill="white" fillOpacity="0.15"/><circle cx="50" cy="210" r="25" stroke="white" strokeWidth="4" fill="white" fillOpacity="0.1"/><circle cx="230" cy="210" r="25" stroke="white" strokeWidth="4" fill="white" fillOpacity="0.1"/><line x1="85" y1="85" x2="125" y2="165" stroke="white" strokeWidth="3" opacity="0.4"/><line x1="195" y1="85" x2="155" y2="165" stroke="white" strokeWidth="3" opacity="0.4"/><line x1="115" y1="195" x2="70" y2="200" stroke="white" strokeWidth="3" opacity="0.4"/><line x1="165" y1="195" x2="210" y2="200" stroke="white" strokeWidth="3" opacity="0.4"/></svg>
           </div>
 
-          {/* Top Label */}
-          <div className={`absolute ${isCompact ? 'top-[70px]' : 'top-[80px]'} left-8 right-8 text-center`}>
-            <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-white/50 text-[12px] uppercase tracking-[0.2em]">{language === 'zh' ? '你的麦克类型' : 'Your Mike Type'}</p>
-          </div>
-
-          {/* Title */}
-          <div className={`absolute ${isCompact ? 'top-[280px]' : 'top-[300px]'} left-0 right-0 text-center px-4`}>
-             <h1 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[48px] leading-tight whitespace-pre-line drop-shadow-lg">
-                 {language === 'zh' ? content.title_zh : content.title_en}
-             </h1>
-          </div>
-
-          {/* Description */}
-          <div className={`absolute ${isCompact ? 'top-[420px]' : 'top-[460px]'} left-8 right-8 text-center`}>
-             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/90 text-[15px] leading-relaxed whitespace-pre-line drop-shadow-md">
-                {language === 'zh' ? content.full_zh : content.desc_en}
+          {/* 1. Header: Label + Intro */}
+          <div className={`absolute ${isCompact ? 'top-[60px]' : 'top-[70px]'} left-8 right-8 text-center`}>
+             <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-white/50 text-[11px] uppercase tracking-[0.2em] mb-2">
+               {language === 'zh' ? '你的麦克类型' : 'YOUR MIKE TYPE'}
+             </p>
+             <p className="font-['Inter','Noto_Sans_SC'] font-semibold text-white/90 text-[15px] leading-tight text-shadow-sm">
+               {language === 'zh' ? '分析你的活动后，你是一位…' : "After analyzing your activity, you're a..."}
              </p>
           </div>
 
-          {/* Buttons Area (Moved up slightly to bottom-110px) */}
-          <div className="absolute bottom-[150px] left-8 right-8 space-y-3 z-50">
+          {/* 2. Main Title & Subtitle */}
+          <div className={`absolute ${isCompact ? 'top-[260px]' : 'top-[280px]'} left-0 right-0 text-center px-4`}>
+             {/* Title */}
+             <h1 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[48px] leading-[0.95] whitespace-pre-line drop-shadow-lg">
+                 {language === 'zh' ? content.title_zh : content.title_en}
+             </h1>
+             
+             {/* English Subtitle - 修改這裡：mt-14 加大間距 */}
+             {language !== 'zh' && (
+               <div className="mt-14 px-4">
+                 <p className="font-['Inter','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.3] tracking-[-0.01em] drop-shadow-md">
+                   {content.subtitle_en}
+                 </p>
+               </div>
+             )}
+          </div>
+
+          {/* 3. Description Area (中文描述區) */}
+          <div className={`absolute ${isCompact ? 'top-[420px]' : 'top-[450px]'} left-8 right-8 text-center`}>
+             {language === 'zh' ? (
+                // 中文：長段落
+                <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/90 text-[15px] leading-relaxed whitespace-pre-line drop-shadow-md">
+                   {content.desc_zh}
+                </p>
+             ) : null}
+          </div>
+
+          {/* 3.5 English Tagline (英文金句) */}
+          {language !== 'zh' && (
+             <div className="absolute bottom-[300px] left-8 right-8 text-center">
+                <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/70 text-[14px] leading-relaxed drop-shadow-sm">
+                   {content.tagline_en}
+                </p>
+             </div>
+          )}
+
+          {/* 4. Buttons Area */}
+          <div className="absolute bottom-[120px] left-8 right-8 space-y-3 z-50">
              <button 
                  onClick={handleSaveImage} 
                  className="w-full bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[16px] shadow-xl hover:bg-white/20 transition-all active:scale-95 cursor-pointer relative z-50 pointer-events-auto"
@@ -894,18 +938,20 @@ function Screen8({ userData, isCompact = false, uiScale }: { userData: UserData 
              </button>
           </div>
 
-          {/* --- Hint Area (Independent & Lower) --- */}
-          {/* 現在獨立放在最底部 bottom-[40px] */}
+          {/* 5. Exclusive Offer Hint */}
           {hasNextPage && (
-            <div className="absolute bottom-[40px] left-0 right-0 flex flex-col items-center animate-bounce pointer-events-none z-40">
-              <div className="flex items-center gap-1 bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg">
-                <span className="text-white/90 text-[13px] font-['Inter','Noto_Sans_SC'] font-medium tracking-wide">
-                  {language === 'zh' ? '還有專屬禮遇' : 'Exclusive Offer'}
+            <div 
+              onClick={onNext}
+              className="absolute bottom-[10px] left-0 right-0 flex flex-col items-center animate-bounce z-50 cursor-pointer pointer-events-auto group"
+            >
+              <div className="flex items-center gap-2 bg-black/40 backdrop-blur-lg px-6 py-2.5 rounded-full border border-white/25 shadow-2xl transition-all duration-300 group-hover:bg-black/60 group-hover:scale-105 group-active:scale-95">
+                <span className="text-white font-['Inter','Noto_Sans_SC'] font-bold text-[16px] tracking-wide drop-shadow-md">
+                  {language === 'zh' ? '还有专属礼遇' : 'Exclusive Offer'}
                 </span>
-                <ChevronRight className="text-white/90 w-4 h-4" />
+                <ChevronRight className="text-white w-5 h-5 drop-shadow-md" strokeWidth={3} />
               </div>
-              <p className="text-white/50 text-[10px] mt-1.5 uppercase tracking-widest font-['Inter']">
-                {language === 'zh' ? '點擊右側繼續' : 'TAP RIGHT'}
+              <p className="text-white/60 text-[11px] mt-2 uppercase tracking-[0.2em] font-bold drop-shadow-sm group-hover:text-white/80 transition-colors">
+                {language === 'zh' ? '点击前往' : 'TAP TO VIEW'}
               </p>
             </div>
           )}
@@ -1125,6 +1171,24 @@ export default function MikeWrap() {
     };
   }, []);
 
+  // 2. Keyboard Navigation Support (電腦版鍵盤左右鍵換頁)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!userData) return;
+      if (e.key === 'ArrowRight') {
+        handleScreenChange(currentScreen + 1);
+      } else if (e.key === 'ArrowLeft') {
+        // 修改: 加入這個檢查，如果當前是 index 1 (Screen 2)，就不執行上一頁
+        if (currentScreen > 1) { 
+          handleScreenChange(currentScreen - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentScreen, userData]); // Dependency on currentScreen to ensure state is fresh
+
   const loadUserData = async (account: string) => {
     try {
        const data = await getUserData(account);
@@ -1157,7 +1221,16 @@ export default function MikeWrap() {
     <Screen4 key="s4" userData={userData} uiScale={uiScale} />,
     <Screen5 key="s5" userData={userData} uiScale={uiScale} />,
     <Screen5a key="s5a" userData={userData} uiScale={uiScale} />,
-    <Screen8 key="s8" userData={userData} isCompact={uiScale < 0.85} uiScale={uiScale} />,
+    
+    // Pass onNext to Screen8
+    <Screen8 
+      key="s8" 
+      userData={userData} 
+      isCompact={uiScale < 0.85} 
+      uiScale={uiScale} 
+      onNext={() => handleScreenChange(currentScreen + 1)}
+    />,
+    
     ...(premiumUserType === 1 || premiumUserType === 2 ? [<Screen9 key="s9" userData={userData} uiScale={uiScale} />] : []),
   ];
 
@@ -1166,35 +1239,77 @@ export default function MikeWrap() {
       <div className="bg-[#5B16D6] relative w-full h-full overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
         
         {/* Story Progress Bar (Fixed at top) */}
+        {/* 優化：加上 max-w-[400px] mx-auto 讓進度條在電腦版不會拉太長，跟卡片對齊 */}
         {userData !== null && currentScreen > 0 && (
-          <StoryProgress 
-             total={screens.length - 1} // Exclude login screen
-             current={currentScreen - 1} 
-             onNavigate={(idx) => handleScreenChange(idx + 1)}
-          />
+          <div className="absolute top-0 left-0 right-0 z-50 flex justify-center w-full pointer-events-none">
+            <div className="w-full max-w-[400px] relative pointer-events-auto">
+              <StoryProgress 
+                 total={screens.length - 1} // Exclude login screen
+                 current={currentScreen - 1} 
+                 onNavigate={(idx) => handleScreenChange(idx + 1)}
+              />
+            </div>
+          </div>
         )}
 
-        {/* Mobile: Full Screen Carousel */}
+        {/* Content Container */}
         <div className="w-full h-full relative">
            {screens[currentScreen]}
         </div>
 
-        {/* Invisible Navigation Buttons */}
-        {/* Adjusted top/bottom values to avoid covering buttons at the bottom of screens */}
+        {/* --- Navigation Controls --- */}
         {userData !== null && (
           <>
+            {/* 1. Mobile & Tablet: Invisible Touch Zones (手機版維持原樣) */}
             <button 
               onClick={() => handleScreenChange(currentScreen - 1)} 
-              disabled={currentScreen === 0}
-              className={`absolute left-0 top-[20%] bottom-[20%] w-[30%] z-40 outline-none ${currentScreen === 0 ? 'hidden' : 'block'}`}
+              // 修改 1: 改成 <= 1 (在登錄頁和第一張數據頁都禁用回上一頁)
+              disabled={currentScreen <= 1}
+              // 修改 2: 樣式同步隱藏
+              className={`md:hidden absolute left-0 top-[20%] bottom-[20%] w-[30%] z-40 outline-none ${currentScreen <= 1 ? 'hidden' : 'block'}`}
               aria-label="Previous"
             />
             <button 
               onClick={() => handleScreenChange(currentScreen + 1)} 
-              disabled={currentScreen >= screens.length - 1}
-              className={`absolute right-0 top-[20%] bottom-[20%] w-[30%] z-40 outline-none ${currentScreen >= screens.length - 1 ? 'hidden' : 'block'}`}
+              // 修改 1: 加上 currentScreen === 0，在登錄頁停用下一頁觸發
+              disabled={currentScreen >= screens.length - 1 || currentScreen === 0}
+              // 修改 2: 同步修改 className，讓它在登錄頁也 hidden (不擋住點擊)
+              className={`md:hidden absolute right-0 top-[20%] bottom-[20%] w-[30%] z-40 outline-none ${(currentScreen >= screens.length - 1 || currentScreen === 0) ? 'hidden' : 'block'}`}
               aria-label="Next"
             />
+
+            {/* 2. Desktop: Visible Floating Arrows (電腦版顯示明確箭頭) */}
+            {/* 左箭頭：定位在中心點往左 280px (卡片寬度一半 195 + 間距) */}
+            <button
+              onClick={() => handleScreenChange(currentScreen - 1)}
+              // 修改 1: 改成 <= 1
+              disabled={currentScreen <= 1}
+              className={`hidden md:flex absolute top-1/2 left-[calc(50%-280px)] -translate-y-1/2 z-50 
+                w-12 h-12 items-center justify-center rounded-full 
+                bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 
+                transition-all duration-200 active:scale-95 outline-none
+                // 修改 2: 改成 <= 1，讓它在第一張數據卡時也消失
+                ${currentScreen <= 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+              `}
+              >
+              <ChevronLeft className="text-white w-6 h-6" />
+            </button>
+
+            {/* 右箭頭：定位在中心點往右 280px */}
+            <button
+              onClick={() => handleScreenChange(currentScreen + 1)}
+              // 修改 1: 加入 currentScreen === 0
+              disabled={currentScreen >= screens.length - 1 || currentScreen === 0}
+              className={`hidden md:flex absolute top-1/2 right-[calc(50%-280px)] -translate-y-1/2 z-50 
+                w-12 h-12 items-center justify-center rounded-full 
+                bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 
+                transition-all duration-200 active:scale-95 outline-none
+                // 修改 2: 加入 currentScreen === 0
+                ${(currentScreen >= screens.length - 1 || currentScreen === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+              `}
+              >
+              <ChevronRight className="text-white w-6 h-6" />
+            </button>
           </>
         )}
 
@@ -1203,7 +1318,11 @@ export default function MikeWrap() {
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowNavHint(false)}>
             <div className="bg-white rounded-2xl p-6 max-w-[280px] text-center shadow-2xl animate-in fade-in zoom-in duration-300">
               <p className="text-[#5B16D6] font-bold text-lg mb-2">{language === 'zh' ? '操作提示' : 'Tip'}</p>
-              <p className="text-gray-600 text-sm mb-4">{language === 'zh' ? '點擊螢幕 左側 / 右側\n可以切換頁面' : 'Tap Left / Right side\nto navigate.'}</p>
+              <p className="text-gray-600 text-sm mb-4">
+                {language === 'zh' 
+                  ? '手機切換頁面請點擊螢幕兩側，電腦則使用鍵盤 ← → 或點擊鍵頭按鈕' 
+                  : 'Use screen edges to navigate on mobile, or click the arrow buttons or ← → keys on desktop.'}
+              </p>
               <button className="bg-[#5B16D6] text-white px-6 py-2 rounded-full text-sm font-bold">OK</button>
             </div>
           </div>
