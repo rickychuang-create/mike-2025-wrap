@@ -885,7 +885,7 @@ function Screen8({
   
   // --- 新增：分析動畫控制 ---
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [loadingText, setLoadingText] = useState(language === 'zh' ? '分析交易数据...' : 'Analyzing trade data...');
+  const [loadingText, setLoadingText] = useState(language === 'zh' ? '分析App行为数据...' : 'Analyzing trade data...');
 
   useEffect(() => {
     // 檢查本次 Session 是否已經播放過
