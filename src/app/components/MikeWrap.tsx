@@ -464,7 +464,7 @@ function Screen3({ userData, uiScale }: { userData: UserData | null; uiScale: nu
             <p className="font-['Inter','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.3] mb-3">
               {language === 'zh' ? '你比 95% 的用户，更完整掌握 Mike 的第一手信息' : "You’re present at Mike’s perspective moments more often than 90% of users."}
             </p>
-            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[13px] leading-[1.6] whitespace-pre-line">
+            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[14px] leading-[1.6] whitespace-pre-line">
               {language === 'zh' 
                 ? '你不是偶尔路过，而是长期站在 Mike 的判断轨道上。当市场变化出现时，你更容易理解 Mike 的判断逻辑，也更清楚自己该如何应对。' 
                 : "You don’t just pass through. You stay consistently within Mike’s line of judgment. When the market shifts, you’re better able to understand Mike’s reasoning and decide your next move with clarity."}
@@ -477,7 +477,7 @@ function Screen3({ userData, uiScale }: { userData: UserData | null; uiScale: nu
             <p className="font-['Inter','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.3] mb-3">
               {language === 'zh' ? '你比 80% 的用户，更完整掌握 Mike 的第一手信息' : "You’re present at Mike’s perspective moments more often than 80% of users."}
             </p>
-            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[13px] leading-[1.6] whitespace-pre-line">
+            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[14px] leading-[1.6] whitespace-pre-line">
               {language === 'zh' 
                 ? '你不是偶尔路过，而是长期站在 Mike 的判断轨道上。当市场变化出现时，你更容易理解 Mike 的判断逻辑，也更清楚自己该如何应对。' 
                 : "You don’t just pass through. You stay consistently within Mike’s line of judgment. When the market shifts, you’re better able to understand Mike’s reasoning and decide your next move with clarity."}
@@ -490,7 +490,7 @@ function Screen3({ userData, uiScale }: { userData: UserData | null; uiScale: nu
             <p className="font-['Inter','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.3] mb-3">
               {language === 'zh' ? '你比 70% 的用户，更完整掌握 Mike 的第一手信息' : "You’re present at Mike’s perspective moments more often than 70% of users."}
             </p>
-            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[13px] leading-[1.6] whitespace-pre-line">
+            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[14px] leading-[1.6] whitespace-pre-line">
               {language === 'zh' 
                 ? '你不是偶尔路过，而是长期站在 Mike 的判断轨道上。当市场变化出现时，你更容易理解 Mike 的判断逻辑，也更清楚自己该如何应对。' 
                 : "You don’t just pass through. You stay consistently within Mike’s line of judgment. When the market shifts, you’re better able to understand Mike’s reasoning and decide your next move with clarity."}
@@ -503,7 +503,7 @@ function Screen3({ userData, uiScale }: { userData: UserData | null; uiScale: nu
             <p className="font-['Inter','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.3] mb-3">
               {language === 'zh' ? '每一段成长，都是从这里开始' : 'Every journey starts somewhere.'}
             </p>
-            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[13px] leading-[1.6] whitespace-pre-line">
+            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[14px] leading-[1.6] whitespace-pre-line">
               {language === 'zh' 
                 ? '很高兴你选择了 Mike App，期待未来与你一起进步、一起变强。' 
                 : "We're glad to have you here, and excited to grow stronger together from here on."}
@@ -785,7 +785,7 @@ function Screen5a({ userData, uiScale }: { userData: UserData | null; uiScale: n
         </h2>
       </div>
       
-      <div className="absolute top-[200px] left-8 right-8 flex flex-col gap-3">
+      <div className="absolute top-[170px] left-8 right-8 flex flex-col gap-3">
         
         {/* Hero stat: 修改處 - 增加光暈與金色漸層 */}
         <div className="relative bg-white/15 backdrop-blur-2xl rounded-3xl p-8 border border-white/25 shadow-xl shadow-black/10 overflow-hidden group">
@@ -820,29 +820,48 @@ function Screen5a({ userData, uiScale }: { userData: UserData | null; uiScale: n
         <div className="grid grid-cols-2 gap-3">
            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
              <p className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[48px] leading-[0.9] tracking-[-0.03em] mb-2">11</p>
-             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/80 text-[13px] leading-[1.4]">{language === 'zh' ? '档股票翻超过一倍' : 'stocks doubled'}</p>
+             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/80 text-[14px] leading-[1.4]">{language === 'zh' ? '档股票翻超过一倍' : 'stocks doubled'}</p>
              <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/50 text-[12px] mt-1">+100% {language === 'zh' ? '或更多' : 'or more'}</p>
            </div>
            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
              <p className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[48px] leading-[0.9] tracking-[-0.03em] mb-2">6</p>
-             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/80 text-[13px] leading-[1.4]">{language === 'zh' ? '档股票翻超过两倍' : 'stocks tripled'}</p>
+             <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/80 text-[14px] leading-[1.4]">{language === 'zh' ? '档股票翻超过两倍' : 'stocks tripled'}</p>
              <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/50 text-[12px] mt-1">+200% {language === 'zh' ? '或更多' : 'or more'}</p>
            </div>
         </div>
 
-        {/* 底部文字區塊 */}
-        <div className="mt-2 bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 shadow-lg">
-           <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/90 text-[14px] leading-[1.6] text-center whitespace-pre-line">
-             {isPremium ? (
-               language === 'zh' 
-                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。很高兴这一年能与你一起，把握先机、共享这段成长旅程。'
-                 : "While the market gained 16%, Mike’s Picks delivered 42%. We’re glad to have navigated this journey and grown together with you."
-             ) : (
-               language === 'zh'
-                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。今年的节奏已经走过，希望明年你能一起加入，别再错过重要的时刻。'
-                 : "While the market gained 16%, Mike’s Picks delivered 42%. This year has passed — we hope you’ll join us next time and catch the moments that matter."
-             )}
-           </p>
+          {/* --- 修改：底部文字區塊 (側邊強調風格) --- */}
+        <div className="mt-3 relative">
+           
+           {/* 1. 小標籤：讓用戶知道這是什麼 */}
+           <div className="flex items-center gap-2 mb-2 opacity-80">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse"></div>
+              <span className="font-['Inter','Noto_Sans_SC'] text-[#FFD700] text-[11px] font-bold tracking-[0.15em] uppercase">
+                {language === 'zh' ? '年度总结' : 'KEY TAKEAWAY'}
+              </span>
+           </div>
+
+           {/* 2. 主要內容區：左側金線 + 漸層背景 */}
+           <div className="relative pl-5 py-3 pr-2">
+              {/* 背景層：從左邊的白/10 漸層到右邊透明，營造速度感 */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-r-xl pointer-events-none" />
+              
+              {/* 左側金色裝飾線 */}
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#FFD700] shadow-[0_0_10px_#FFD700] rounded-full" />
+
+              {/* 文字內容 */}
+              <p className="relative font-['Inter','Noto_Sans_SC'] font-normal text-white/90 text-[15px] leading-[1.7] whitespace-pre-line">
+                {isPremium ? (
+                   language === 'zh' 
+                     ? <>当大盘上涨 <span className="text-white font-bold">16%</span> 时，Mike 精选交出 <span className="text-[#FFD700] font-bold text-[16px]">42%</span> 的成绩。很高兴这一年能与你一起，把握先机、共享这段成长旅程</>
+                     : <>While the market gained <span className="text-white font-bold">16%</span>, Mike’s Picks delivered <span className="text-[#FFD700] font-bold text-[16px]">42%</span>. We’re glad to have navigated this journey and grown together with you.</>
+                 ) : (
+                   language === 'zh'
+                     ? <>当大盘上涨 <span className="text-white font-bold">16%</span> 时，Mike 精选交出 <span className="text-[#FFD700] font-bold text-[16px]">42%</span> 的成绩。今年的节奏已经走过，希望明年你能一起加入，别再错过重要的时刻</>
+                     : <>While the market gained <span className="text-white font-bold">16%</span>, Mike’s Picks delivered <span className="text-[#FFD700] font-bold text-[16px]">42%</span>. This year has passed — we hope you’ll join us next time and catch the moments that matter.</>
+                 )}
+              </p>
+           </div>
         </div>
 
       </div>
@@ -1093,6 +1112,8 @@ function Screen8({
 function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: number }) {
   const { language } = useLanguage();
   const premium_user_type = userData?.premium_user_type || 1;
+  
+  // 如果是免費用戶 (type 3)，不顯示此頁
   if (premium_user_type === 3) return null;
   
   // Track View on Mount
@@ -1102,6 +1123,7 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
     }
   }, []);
 
+  // --- 資料處理區 (保持不變) ---
   const feature_1 = userData?.feature_1 || "语音聊天室 Live Room";
   const feature_2 = userData?.feature_2 || "麦克精选 Mike's Pick";
   const feature_3 = userData?.feature_3 || "社团 Club";
@@ -1146,6 +1168,18 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
     .slice(0, 3)
     .map(f => splitFeatureName(f.name));
 
+  // --- 變數定義 ---
+  const expiryDate = premium_user_type === 1 ? '2/4' : '2/19';
+  const priceCurrent = premium_user_type === 1 ? 'US$469' : 'US$509';
+  const priceFuture = 'US$559';
+  const expiryDateEn = premium_user_type === 1 ? 'Feb 4' : 'Feb 19';
+
+  // --- 處理續訂跳轉邏輯 (共用函數) ---
+  const handleRenewClick = () => {
+    const renewUrl = premium_user_type === 1 ? 'https://cmy.tw/00Cl6t' : 'https://cmy.tw/00CnkI';
+    navigateWithTrack(renewUrl, 'screen9_renew_plan', userData?.account || '');
+  };
+
   const overlay = (
     <>
       <img alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" src={imgLoginBackground} />
@@ -1154,106 +1188,90 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
     </>
   );
 
-  const expiryDate = premium_user_type === 1 ? '2/4' : '2/19';
-  const priceCurrent = premium_user_type === 1 ? 'US$469' : 'US$509';
-  const priceFuture = 'US$559';
-  const expiryDateEn = premium_user_type === 1 ? 'Feb 4' : 'Feb 19';
-
   return (
     <ResponsiveWrapper scale={uiScale} backgroundColor="bg-gradient-to-b from-[#7B3FE4] via-[#5B16D6] to-[#4A0FB8]" backgroundOverlay={overlay} data-name="Premium Reminder">
-      <div className="absolute top-[70px] left-8 right-8">
+      <div className="absolute top-[80px] left-8 right-8">
         <h1 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-white text-[20px] leading-[1.2] tracking-[-0.02em] text-center">
           {language === 'zh' ? '感谢身为Mike App第一批支持者的你' : 'Thank you for being one of the first supporters of the Mike App'}
         </h1>
       </div>
       
-      <div className="absolute top-[140px] left-6 right-6 flex flex-col gap-4">
+      <div className="absolute top-[170px] left-6 right-6 flex flex-col gap-4">
          <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-5 border border-white/20 shadow-2xl">
             
             {/* 1. 到期日提醒 */}
             <div className="flex items-center justify-center gap-2 mb-4 pb-4 border-b border-white/10">
                 <Clock className="text-[#FF8F8F] w-5 h-5 animate-pulse" />
-                <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white text-[16px] text-center">
+                <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white text-[18px] text-center">
                   {language === 'zh' ? (
-                     <>VIP 权限将于 <span className="text-[#FF8F8F] font-bold text-[18px]">{expiryDate}</span> 到期</>
+                     <>VIP 权限将于 <span className="text-[#FF8F8F] font-bold text-[20px]">{expiryDate}</span> 到期</>
                   ) : (
-                     <>VIP access expires on <span className="text-[#FF8F8F] font-bold text-[18px]">{expiryDateEn}</span></>
+                     <>VIP access expires on <span className="text-[#FF8F8F] font-bold text-[20px]">{expiryDateEn}</span></>
                   )}
                 </p>
             </div>
 
-            {/* 2. 核心優惠區塊 (修改重點：置中佈局 + 價格巨大化) */}
+            {/* 2. 核心優惠區塊 (置中 + 價格巨大化 + 贈品按鈕化) */}
             <div className="relative overflow-hidden bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 border border-[#FFD700]/60 rounded-2xl p-5 mb-4 shadow-[0_0_15px_rgba(255,215,0,0.15)] group">
                 {/* 裝飾閃光 */}
                 <div className="absolute top-0 right-0 p-2 opacity-30"><Sparkles className="text-[#FFD700] w-12 h-12" /></div>
                 
-                {/* 改用 items-center 和 text-center 讓內容置中 */}
                 <div className="flex flex-col items-center text-center gap-1 relative z-10">
+                    {/* 標題 */}
                     <div className="flex items-center justify-center gap-2 text-[#FFD700] mb-1">
                         <Gift className="w-5 h-5" />
-                        <span className="font-bold text-[13px] uppercase tracking-wider">{language === 'zh' ? '限时续订礼遇' : 'Limited Time Offer'}</span>
+                        <span className="font-bold text-[15px] uppercase tracking-wider">{language === 'zh' ? '限时续订礼遇' : 'Limited Time Offer'}</span>
                     </div>
 
-                    <p className="font-['Inter','Noto_Sans_SC'] text-white/90 text-[13px] leading-relaxed">
+                    {/* 截止日期提示 */}
+                    <p className="font-['Inter','Noto_Sans_SC'] text-white/90 text-[17px] leading-relaxed">
                        {language === 'zh' ? (
-                          <>在 <span className="font-bold text-white border-b border-white/40">{expiryDate}</span> 前续订，保留终生早鸟价</>
+                          <>在 <span className="font-bold text-white border-b border-white/40">{expiryDate}</span> 前续订</>
                        ) : (
-                          <>Renew by <span className="font-bold text-white border-b border-white/40">{expiryDateEn}</span> to keep early-bird price</>
+                          <>Renew by <span className="font-bold text-white border-b border-white/40">{expiryDateEn}</span> to</>
                        )}
                     </p>
 
-                    {/* 修改重點：獨立一行顯示巨大價格 */}
-                    <h2 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-[#FFD700] text-[42px] leading-[1.1] drop-shadow-md my-1">
-                      {priceCurrent}
+                    {/* 巨大價格 (中英文切換) */}
+                    <h2 className="font-['Space_Grotesk','Noto_Sans_SC'] font-bold text-[#FFD700] text-[20px] leading-[1.2] drop-shadow-md my-1">
+                      {language === 'zh' ? (
+                        <>保留终生早鸟价 {priceCurrent}</>
+                      ) : (
+                        <>Keep lifetime early-bird price {priceCurrent}</>
+                      )}
                     </h2>
 
-                    {/* 修改重點：加大送一個月按鈕 */}
-                    <div className="mt-1 flex items-center justify-center gap-2 bg-[#FFD700] px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(255,215,0,0.4)] animate-pulse">
-                        <span className="font-['Inter','Noto_Sans_SC'] font-bold text-[#5B16D6] text-[15px]">
+                    {/* 贈品按鈕 (改為 button 並綁定事件) */}
+                    <button 
+                      onClick={handleRenewClick}
+                      className="mt-1 flex items-center justify-center gap-2 bg-[#FFD700] px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(255,215,0,0.4)] animate-pulse hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                    >
+                        <span className="font-['Inter','Noto_Sans_SC'] font-bold text-[#5B16D6] text-[16px]">
                             {language === 'zh' ? '+ 加送 1 个月权限' : '+ Free 1 Month Bonus'}
                         </span>
-                    </div>
+                    </button>
                 </div>
             </div>
 
             {/* 3. 漲價預警 */}
             <div className="flex items-start gap-3 bg-black/20 rounded-xl p-3 border border-white/5">
                 <TrendingUp className="text-[#FF8F8F] w-5 h-5 flex-shrink-0 mt-0.5" />
-                <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[13px] leading-[1.4]">
+                <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/80 text-[16px] leading-[1.4]">
                   {language === 'zh' ? (
-                     <>过期后，年方案价格将調漲至 <span className="text-white font-semibold underline decoration-[#FF8F8F]">{priceFuture}</span> 以上，早鸟优惠错过不再。</>
+                     <>{expiryDate}后<br/>年方案将調漲至 <span className="text-white font-semibold underline decoration-[#FF8F8F]">{priceFuture}以上</span><br/>早鸟优惠错过不再</>
                   ) : (
-                     <>After expiry, the price rises to <span className="text-white font-semibold underline decoration-[#FF8F8F]">{priceFuture}</span>+. Don't miss the early-bird rate.</>
+                     <>After {expiryDate}<br/> The price will rise to <span className="text-white font-semibold underline decoration-[#FF8F8F]">{priceFuture}+</span> <br/>Don't miss the early-bird rate</>
                   )}
                 </p>
             </div>
 
          </div>
-         
-         {/* VIP 功能回顧 */}
-         {vipFeatures.length > 0 && (
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex flex-col items-center">
-            <p className="font-['Inter','Noto_Sans_SC'] font-medium text-white/60 text-[12px] mb-2">
-              {language === 'zh' ? '你最常使用的 VIP 功能' : 'Your Top VIP Features'}
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {vipFeatures.map((feature, index) => (
-                <span key={index} className="bg-white/10 rounded-full px-3 py-1 text-white text-[11px] border border-white/10">
-                  {language === 'zh' ? feature.chinese : feature.english}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
       
-      {/* 按鈕區 */}
-      <div className="absolute bottom-[50px] left-8 right-8">
+      {/* 底部固定按鈕區 */}
+      <div className="absolute bottom-[90px] left-8 right-8">
          <button 
-           onClick={() => {
-             const renewUrl = premium_user_type === 1 ? 'https://cmy.tw/00Cl6t' : 'https://cmy.tw/00CnkI';
-             navigateWithTrack(renewUrl, 'screen9_renew_plan', userData?.account || '');
-           }}
+           onClick={handleRenewClick}
            className="w-full bg-gradient-to-r from-white via-white to-[#F0F0F0] text-[#5B16D6] rounded-2xl px-6 py-4 font-['Inter','Noto_Sans_SC'] font-bold text-[18px] shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all mb-3 relative overflow-hidden"
          >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]" />
@@ -1284,7 +1302,7 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
 // --- Main Component ---
 export default function MikeWrap() {
   const [currentScreen, setCurrentScreen] = useState(0);
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('zh');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [uiScale, setUiScale] = useState(1);
   const [showNavHint, setShowNavHint] = useState(false);
