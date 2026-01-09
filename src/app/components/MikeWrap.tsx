@@ -835,11 +835,11 @@ function Screen5a({ userData, uiScale }: { userData: UserData | null; uiScale: n
            <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/90 text-[14px] leading-[1.6] text-center whitespace-pre-line">
              {isPremium ? (
                language === 'zh' 
-                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。\n很高兴这一年能与你一起，把握先机、共享这段成长旅程。'
+                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。很高兴这一年能与你一起，把握先机、共享这段成长旅程。'
                  : "While the market gained 16%, Mike’s Picks delivered 42%. We’re glad to have navigated this journey and grown together with you."
              ) : (
                language === 'zh'
-                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。\n今年的节奏已经走过，希望明年你能一起加入，别再错过重要的时刻。'
+                 ? '当大盘上涨 16% 时，Mike 精选交出 42% 的成绩。今年的节奏已经走过，希望明年你能一起加入，别再错过重要的时刻。'
                  : "While the market gained 16%, Mike’s Picks delivered 42%. This year has passed — we hope you’ll join us next time and catch the moments that matter."
              )}
            </p>
@@ -1248,7 +1248,7 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
       </div>
       
       {/* 按鈕區 */}
-      <div className="absolute bottom-[60px] left-8 right-8">
+      <div className="absolute bottom-[50px] left-8 right-8">
          <button 
            onClick={() => {
              const renewUrl = premium_user_type === 1 ? 'https://cmy.tw/00Cl6t' : 'https://cmy.tw/00CnkI';
@@ -1270,7 +1270,7 @@ function Screen9({ userData, uiScale }: { userData: UserData | null; uiScale: nu
          </button>
       </div>
 
-      <div className="absolute bottom-[30px] left-8 right-8">
+      <div className="absolute bottom-[25px] left-8 right-8">
         <p className="font-['Inter','Noto_Sans_SC'] font-normal text-white/30 text-[11px] leading-[1.4] text-center">
           {language === 'zh' 
             ? '我们只是不想让你意外失去访问权限' 
